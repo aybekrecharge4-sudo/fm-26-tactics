@@ -21,7 +21,7 @@ const DataStore = (() => {
 
     // GitHub repo coordinates — change these if you fork the repo
     const GITHUB_USER = 'aybekrecharge4-sudo';
-    const GITHUB_REPO = 'fm26';
+    const GITHUB_REPO = 'fm-26-tactics';
     const GITHUB_BRANCH = 'main';
     const DATA_PATH = 'fm26-tactics/data';
 
@@ -228,7 +228,7 @@ const DataStore = (() => {
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:') {
             return `./downloads/${slug}.fmf`;
         }
-        return `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@${GITHUB_BRANCH}/fm26-tactics/downloads/${slug}.fmf`;
+        return `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@${GITHUB_BRANCH}/${DATA_PATH.replace('/data', '')}/downloads/${slug}.fmf`;
     }
 
     return {
