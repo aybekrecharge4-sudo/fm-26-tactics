@@ -22,19 +22,22 @@ const ComparisonSlot = (() => {
 
     function showSelector(onSelect) {
         const tactics = DataStore.getTactics();
-        const overlay = document.createElement('div');
-        overlay.className = 'modal-overlay';
-        overlay.innerHTML = `
-            <div class="modal">
-                <div class="modal-title">Select a Tactic</div>
-                <input type="text" class="input" id="selectorSearch" placeholder="Search tactics..." autofocus>
-                <div id="selectorResults" style="margin-top:12px;max-height:400px;overflow-y:auto"></div>
-            </div>
-        `;
 
-        // Append inside .fm26-app so modal inherits namespaced styles
-        const appRoot = document.getElementById('fm26-app') || document.body;
-        appRoot.appendChild(overlay);
+        // Create overlay and append to document.body to avoid overflow clipping
+        const overlay = document.createElement('div');
+        overlay.className = 'fm26-app modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;backdrop-filter:blur(4px);';
+
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.cssText = 'background:#ffffff;border:2px solid #e5e7eb;border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#1a1a2e;';
+        modal.innerHTML = `
+            <div style="font-size:1.2rem;font-weight:700;margin-bottom:16px">Select a Tactic</div>
+            <input type="text" class="input" id="selectorSearch" placeholder="Search tactics..." style="width:100%;padding:10px 16px;background:#f3f4f6;border:2px solid #e5e7eb;border-radius:12px;font-size:0.9rem;height:44px;outline:none;color:#1a1a2e;box-sizing:border-box;">
+            <div id="selectorResults" style="margin-top:12px;max-height:400px;overflow-y:auto"></div>
+        `;
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
 
         function renderResults(query) {
             const filtered = query
@@ -44,46 +47,61 @@ const ComparisonSlot = (() => {
                 })
                 : tactics;
 
-            const results = document.getElementById('selectorResults');
+            const results = overlay.querySelector('#selectorResults');
             if (!results) return;
 
             results.innerHTML = filtered.map(t => `
-                <div class="tactic-card" style="margin-bottom:8px;padding:12px" data-slug="${esc(t.slug)}">
-                    <div class="tactic-card-name" style="font-size:0.95rem">${esc(t.name)}</div>
-                    <div style="font-size:0.8rem;color:var(--fm26-text-muted);margin-top:2px">
+                <div class="selector-tactic" style="margin-bottom:8px;padding:12px;background:#ffffff;border:2px solid #e5e7eb;border-radius:12px;cursor:pointer;transition:border-color 150ms ease" data-slug="${esc(t.slug)}">
+                    <div style="font-size:0.95rem;font-weight:700;color:#1a1a2e">${esc(t.name)}</div>
+                    <div style="font-size:0.8rem;color:#6b7280;margin-top:2px">
                         ${esc(t.formationFamily)} &middot; ${esc(t.primaryStyle)} &middot; by ${esc(t.author)}
                     </div>
                 </div>
-            `).join('') || '<div class="empty-state">No tactics found.</div>';
+            `).join('') || '<div style="text-align:center;padding:32px;color:#6b7280">No tactics found.</div>';
 
-            results.querySelectorAll('.tactic-card').forEach(card => {
+            results.querySelectorAll('.selector-tactic').forEach(card => {
+                card.addEventListener('mouseenter', () => { card.style.borderColor = '#22c55e'; });
+                card.addEventListener('mouseleave', () => { card.style.borderColor = '#e5e7eb'; });
                 card.addEventListener('click', () => {
                     const slug = card.dataset.slug;
                     const tactic = DataStore.getTactic(slug);
-                    overlay.remove();
+                    cleanup();
                     if (onSelect && tactic) onSelect(tactic);
                 });
             });
         }
 
-        // Close on overlay click
+        function cleanup() {
+            overlay.remove();
+            document.removeEventListener('keydown', escHandler);
+        }
+
+        // Close on overlay click (not modal)
         overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) overlay.remove();
+            if (e.target === overlay) cleanup();
+        });
+
+        // Prevent clicks inside modal from closing
+        modal.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
 
         // Search
-        const searchInput = document.getElementById('selectorSearch');
+        const searchInput = overlay.querySelector('#selectorSearch');
         searchInput.addEventListener('input', (e) => renderResults(e.target.value));
+        searchInput.addEventListener('focus', () => { searchInput.style.borderColor = '#22c55e'; searchInput.style.boxShadow = '0 0 0 3px rgba(34,197,94,0.12)'; });
+        searchInput.addEventListener('blur', () => { searchInput.style.borderColor = '#e5e7eb'; searchInput.style.boxShadow = 'none'; });
 
         // Close on Escape
-        document.addEventListener('keydown', function handler(e) {
-            if (e.key === 'Escape') {
-                overlay.remove();
-                document.removeEventListener('keydown', handler);
-            }
-        });
+        function escHandler(e) {
+            if (e.key === 'Escape') cleanup();
+        }
+        document.addEventListener('keydown', escHandler);
 
         renderResults('');
+
+        // Focus search input after render
+        setTimeout(() => searchInput.focus(), 50);
     }
 
     function esc(str) {
