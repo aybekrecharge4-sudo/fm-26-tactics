@@ -1,4 +1,4 @@
-/* FM26 Scoped Reset — only affects content inside .fm26-app */
+/* FM26 Scoped Reset â€” only affects content inside .fm26-app */
 .fm26-app {
     font-family: var(--fm26-font-primary);
     background: var(--fm26-bg-primary);
@@ -6,7 +6,6 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
     border-radius: var(--fm26-radius-lg);
 }
 
