@@ -5,7 +5,8 @@
     min-height: 600px;
 }
 
-.fm26-app .fm26-content {
+.fm26-app .fm26-content,
+.fm26-app #fm26-content {
     flex: 1;
     width: 100%;
     max-width: var(--fm26-max-width);
@@ -301,7 +302,8 @@
         grid-template-columns: 1fr;
     }
 
-    .fm26-app .fm26-content {
+    .fm26-app .fm26-content,
+    .fm26-app #fm26-content {
         padding: var(--fm26-space-md) var(--fm26-space-sm);
     }
 }
